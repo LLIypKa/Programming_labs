@@ -13,7 +13,7 @@ int main(void) {
     char symb;
 
     printf("Введите число n (модуль шифра) и число e (открытй ключ) через пробел, а также зашифрованное сообщение\n");
-    scanf("%d %d %d", &e, &n, &code);
+    scanf("%d %d %d", &n, &e, &code);
     
     condititon = n / 2;
     for (int divider = 1; divider <= condititon; divider += 2) {
@@ -21,7 +21,7 @@ int main(void) {
             int divider2 = n / divider;
             int is_divider1_simple = check_is_number_simple(&divider);
             int is_divider2_simple = check_is_number_simple(&divider2);
-            if (!(is_divider1_simple || is_divider2_simple)) {
+            if (is_divider1_simple && is_divider2_simple) {
                 p = divider;
                 q = divider2;
                 break;
