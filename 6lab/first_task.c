@@ -2,6 +2,8 @@
 можно упростить, если увеличить массива вдвое и сделать его типа short
 тогда уйдёт несколько функций и, соотвественно, станет меньше вызовов к этим функциям и код станет проще
 + расход памяти останется тем же
+
++ для переносимости можно использовать типы uint32_t и тому подобные
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,7 +17,7 @@ void init_complex_array(unsigned int*);
 void print_complex_array(unsigned int*);
 short get_real_part(unsigned int*);
 short get_imaginary_part(unsigned int*);
-unsigned int get_signal_energy(unsigned int*);
+unsigned long long get_signal_energy(unsigned int*);
 void find_max(unsigned int*, short*, int*);
 
 int main(void) {
@@ -24,12 +26,12 @@ int main(void) {
     unsigned int complex_numbers[N];
     init_complex_array(complex_numbers);
     print_complex_array(complex_numbers);
-    unsigned int energy = get_signal_energy(complex_numbers);
+    unsigned long long energy = get_signal_energy(complex_numbers);
     short max;
     int index;
     find_max(complex_numbers, &max, &index);
 
-    printf("E = %u\n", energy);
+    printf("E = %llu\n", energy);
     printf("max = %hd, index = %d\n", max, index);
 
     return EXIT_SUCCESS;
@@ -53,20 +55,20 @@ void print_complex_array(unsigned int *array) {
 }
 
 short get_real_part(unsigned int *number) {
-    return *number & 0xFFFF;
+    return (short)(*number & 0xFFFF);
 }
 
 short get_imaginary_part(unsigned int *number) {
-    return (*number >> 16) & 0xFFFF;
+    return (short)((*number >> 16) & 0xFFFF);
 }
 
-unsigned int get_signal_energy(unsigned int *array)  {
-    unsigned int E = 0;
+unsigned long long get_signal_energy(unsigned int *array)  {
+    unsigned long long E = 0;
     for (int i = 0; i < N; i++) {
         short real = get_real_part(&array[i]);
         short imaginary = get_imaginary_part(&array[i]);
 
-        E += (unsigned int)(real * real) + (unsigned int)(imaginary * imaginary); 
+        E += (unsigned long long)(real * real) + (unsigned long long)(imaginary * imaginary); 
     }
 
     return E;
