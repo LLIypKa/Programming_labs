@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+
+//в работу такой код нельзя, так как используется небезопасный scanf, есть огроменная рекурсия, нет проверок выделения памяти и на дурака во время ввода
 
 void init_matrix(double**, double*, int*);
 double find_determinant(double**, int*);
@@ -22,9 +25,10 @@ int main(void) {
     init_matrix(matrix, free_terms_vector, &matrix_size);
 
     determinant = find_determinant(matrix, &matrix_size);
-    if (determinant == 0) {
-        printf("Решений или нет, или их бесконечно много");
-        return EXIT_SUCCESS;
+    if (fabs(determinant) < 1e-12) {
+        printf("Решений или нет, или их бесконечно много\n");
+        //АЛАРМ!!!!!!!!!!! в рабочем коде никогда так НЕ ДЕЛАЙ
+        goto FREE_ALL_DATA;
     }
     else {
         printf("det A = %.2lf\n", determinant);
@@ -34,15 +38,16 @@ int main(void) {
     find_unknowns(matrix, free_terms_vector, unknowns_vector, &matrix_size, &determinant);
 
     for(int i = 0; i < matrix_size; i++) {
-        printf("x%d = %.2lf\n", i, unknowns_vector[i]);
+        printf("x%d = %.2lf\n", i + 1, unknowns_vector[i]);
     }
 
+    free(unknowns_vector);
+    FREE_ALL_DATA:
     for(int i = 0; i < matrix_size; i++) {
         free(matrix[i]);
     }
     free(matrix);
     free(free_terms_vector);
-    free(unknowns_vector);
     return EXIT_SUCCESS;
 }
 
@@ -56,7 +61,7 @@ void init_matrix(double **matrix, double *free_terms, int* matrix_size) {
 
     printf("Введите столбец свободных членов\n");
     for (int i = 0; i < *matrix_size; i++) {
-        printf("B[%d] = ", i);
+        printf("B[%d] = ", i + 1);
         scanf("%lf", &free_terms[i]);
     }
 }
