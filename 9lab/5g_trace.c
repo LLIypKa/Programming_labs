@@ -7,6 +7,10 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+//TODO масштабировать до нескольких лучей
+//TODO раскидать по файлам ray.c и matrix.c
+//TODO придумать что-нибудь с материалами (возможно сделатькарту материалов)
+
 #define STEP 0.5f
 #define AIR_WEAKING 0.99f
 #define CONCRETE_WEAKING 0.5f
@@ -24,6 +28,7 @@ void raytrace(Ray*, int**, float**, int*);
 void print_map(int**, int*, Ray*);
 void update_ray_coordinates(Ray *ray, float step);
 void print_cover(float**, int*, Ray*);
+void update_power(Ray*, int);
 
 int main(void) {
     FILE* input = fopen("map.txt", "r");
@@ -77,12 +82,15 @@ int main(void) {
 void raytrace(Ray *ray, int **map, float **cover,  int *n) {
     int cx, cy;
     bool is_need_to_update = false;
+    int material;
 
     while (fabs(ray->power) > 1e-12) {
         //получим старые координаты для массива cover и заполним по ним данные
         //из-за отбрасывания вещественной части визуализация не корректна
         cx = (int) ray->x;
         cy = (int) ray->y;
+        material = map[cx][cy];
+        update_power(ray, material);
         cover[cx][cy] += ray->power;
         
         is_need_to_update = false;
@@ -106,9 +114,9 @@ void raytrace(Ray *ray, int **map, float **cover,  int *n) {
 
         if (is_need_to_update) {
             update_ray_coordinates(ray, STEP);
+            material = map[cx_new][cy_new];
+            update_power(ray, material);
         }
-
-        ray->power *= CONCRETE_WEAKING;
     } 
 }
 
@@ -142,5 +150,20 @@ void print_cover(float **cover, int *n, Ray *ray) {
             printf(" %.12f ", cover[i][j]);
         }
         printf("\n");
+    }
+}
+
+void update_power(Ray *ray, int material) {
+    switch (material)
+    {
+        case 0:
+            ray->power *= AIR_WEAKING;
+            break;
+        case 1:
+            ray->power *= CONCRETE_WEAKING;
+            break;
+        case 2:
+            ray->power *= GLASS_WEAKING;
+            break;
     }
 }
