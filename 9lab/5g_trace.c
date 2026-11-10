@@ -3,6 +3,9 @@
 #include <unistd.h>
 #include <math.h>
 #include <stdbool.h>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 #define STEP 0.5f
 #define AIR_WEAKING 0.99f
@@ -48,6 +51,7 @@ int main(void) {
         }
     }
 
+    ray->angle = ray->angle * M_PI / 180;
     ray->dx = cos(ray->angle);
     ray->dy = sin(ray->angle);
 
@@ -93,14 +97,11 @@ void raytrace(Ray *ray, int **map, float **cover,  int *n) {
 
         //при разделении на библиотеки лучше бы тоже пихнуть в работу с лучом
         if (map[cx_new][cy_new] != 0) {    
-            if (cx_new != cx) {
-                ray->dx = -ray->dx;
-                is_need_to_update = true;
-            }
-            if (cy_new != cy) {
-                ray->dy = -ray->dy;
-                is_need_to_update = true;
-            }
+            bool wall_vert = (cx_new != cx) && (map[cx_new][cy] != 0);  // стена по x
+            bool wall_horiz = (cy_new != cy) && (map[cx][cy_new] != 0); // стена по y
+
+            if (wall_vert)  { ray->dx = -ray->dx; is_need_to_update = true; }
+            if (wall_horiz) { ray->dy = -ray->dy; is_need_to_update = true; }
         }
 
         if (is_need_to_update) {
