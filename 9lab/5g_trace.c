@@ -4,11 +4,12 @@
 #include <math.h>
 #include <stdbool.h>
 
-#define STEP 0.5
+#define STEP 0.5f
 #define AIR_WEAKING 0.99f
 #define CONCRETE_WEAKING 0.5f
 #define GLASS_WEAKING 0.8f
 
+/// @brief хранит float-координаты (x;y), float angle, power и float-шаги по осям (dx, dy)
 typedef struct ray {
     float x, y;
     float angle, power;
@@ -16,17 +17,10 @@ typedef struct ray {
     char symb;
 } Ray;
 
-//работа с картами и лучом, либо разделять, либо тут оставлять
-
 void raytrace(Ray*, int**, float**, int*); 
-
-// вывод карты
-
 void print_map(int**, int*, Ray*);
-
-// работа с лучом
-
-void update_ray_coordinates(Ray*);
+void update_ray_coordinates(Ray *ray, float step);
+void print_cover(float**, int*, Ray*);
 
 int main(void) {
     FILE* input = fopen("map.txt", "r");
@@ -58,6 +52,7 @@ int main(void) {
     ray->dy = sin(ray->angle);
 
     raytrace(ray, map, cover, &n);
+    print_cover(cover, &n, ray);
 
     fclose(input);
     for (int i = 0; i < n; i++) {
@@ -75,24 +70,26 @@ int main(void) {
 /// @param map карта города
 /// @param cover карта покрытия
 /// @param n размерность карты
-void raytrace(Ray *ray, int **map, float **cover, int *n) {
-    float old_x, old_y;
+void raytrace(Ray *ray, int **map, float **cover,  int *n) {
     int cx, cy;
     bool is_need_to_update = false;
 
     while (fabs(ray->power) > 1e-12) {
+        //получим старые координаты для массива cover и заполним по ним данные
+        //из-за отбрасывания вещественной части визуализация не корректна
+        cx = (int) ray->x;
+        cy = (int) ray->y;
+        cover[cx][cy] += ray->power;
+        
         is_need_to_update = false;
         print_map(map, n, ray);
         usleep(200000);
         fflush(stdout);
-        
-        cx = (int) ray->x;
-        cy = (int) ray->y;
 
-        update_ray_coordinates(ray);
+        update_ray_coordinates(ray, STEP);
         
-        int cx_new = (int) (ray->x + ray->dx * STEP);
-        int cy_new = (int) (ray->y + ray->dy * STEP);
+        int cx_new = (int) (ray->x);
+        int cy_new = (int) (ray->y);
 
         //при разделении на библиотеки лучше бы тоже пихнуть в работу с лучом
         if (map[cx_new][cy_new] != 0) {    
@@ -107,9 +104,7 @@ void raytrace(Ray *ray, int **map, float **cover, int *n) {
         }
 
         if (is_need_to_update) {
-            update_ray_coordinates(ray);
-            int cx_new = (int) (ray->x + ray->dx * STEP);
-            int cy_new = (int) (ray->y + ray->dy * STEP);
+            update_ray_coordinates(ray, STEP);
         }
 
         ray->power *= CONCRETE_WEAKING;
@@ -129,12 +124,22 @@ void print_map(int **map, int *n, Ray *ray) {
         printf("\n");
     }
 
-    printf("Ray coordinates (%.2f, %.2f)\n", ray->x, ray->y);
+    printf("Ray coordinates (%.2f, %.2f), power: %.12f\n", ray->x, ray->y, ray->power);
 }
 
 /// @brief обновляет координаты луча
 /// @param ray луч
-void update_ray_coordinates(Ray *ray) {
-    ray->x = ray->x + ray->dx * STEP;
-    ray->y = ray->y + ray->dy * STEP;
+/// @param step шаг
+void update_ray_coordinates(Ray *ray, float step) {
+    ray->x = ray->x + ray->dx * step;
+    ray->y = ray->y + ray->dy * step;
+}
+
+void print_cover(float **cover, int *n, Ray *ray) {
+    for (int i = 0; i < *n; i++) {
+        for (int j = 0; j < *n; j++) {    
+            printf(" %.12f ", cover[i][j]);
+        }
+        printf("\n");
+    }
 }
