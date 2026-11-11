@@ -8,8 +8,9 @@
 #endif
 
 //TODO масштабировать до нескольких лучей
-//TODO раскидать по файлам ray.c и matrix.c
+//TODO раскидать по файлам ray.c и matrix.c (при раскидывании сделать общие функции через void*, enum и размерности)
 //TODO придумать что-нибудь с материалами (возможно сделатькарту материалов)
+//TODO исправить накопление силы в стене
 
 #define STEP 0.5f
 #define AIR_WEAKING 0.99f
@@ -43,12 +44,13 @@ int main(void) {
     Ray **rays;
     int **map;
     float **cover;
+    float ***covers;
 
     fscanf(input, "%d %d", &n, &rays_count);
     
     rays = (Ray**)malloc(sizeof(Ray*) * rays_count);
     ray = (Ray*)malloc(sizeof(Ray));
-    float ***covers = (float***)malloc(sizeof(float**) * rays_count);
+    covers = (float***)malloc(sizeof(float**) * rays_count);
     
     for (int i = 0; i < rays_count; i++) {
         rays[i] = (Ray*)malloc(sizeof(Ray));
