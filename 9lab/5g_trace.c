@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <math.h>
 #include <stdbool.h>
+#include "work_with_ray/ray.h"
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -17,17 +18,8 @@
 #define CONCRETE_WEAKING 0.5f
 #define GLASS_WEAKING 0.8f
 
-/// @brief хранит float-координаты (x;y), float angle, power и float-шаги по осям (dx, dy)
-typedef struct ray {
-    float x, y;
-    float angle, power;
-    float dx, dy;
-    char symb;
-} Ray;
-
 void raytrace(Ray*, int**, float**, int*); 
 void print_map(int**, int*, Ray*);
-void update_ray_coordinates(Ray *ray, float step);
 void print_cover(float**, int*, Ray*);
 void update_power(Ray*, int);
 
@@ -166,14 +158,6 @@ void print_map(int **map, int *n, Ray *ray) {
     printf("Ray coordinates (%.2f, %.2f), power: %.12f\n", ray->x, ray->y, ray->power);
 }
 
-/// @brief обновляет координаты луча
-/// @param ray луч
-/// @param step шаг
-void update_ray_coordinates(Ray *ray, float step) {
-    ray->x = ray->x + ray->dx * step;
-    ray->y = ray->y + ray->dy * step;
-}
-
 void print_cover(float **cover, int *n, Ray *ray) {
     for (int i = 0; i < *n; i++) {
         for (int j = 0; j < *n; j++) {    
@@ -183,6 +167,7 @@ void print_cover(float **cover, int *n, Ray *ray) {
     }
 }
 
+//после проработки материалов перенести в ray.h/ray.c
 void update_power(Ray *ray, int material) {
     switch (material)
     {
