@@ -9,9 +9,7 @@ typedef struct ray {
     char symb;
 } Ray;
 
-/// @brief обновляет координаты луча
-/// @param ray луч
-/// @param step шаг
 void update_ray_coordinates(Ray *ray, float step);
+Ray* init_ray(float *x, float *y, float *angle, float *power, char *symb);
 
 #endif /*RAY_H*/

@@ -32,6 +32,8 @@ int main(void) {
     }
 
     int n, rays_count;
+    float x, y, power, angle, dx, dy;
+    char symb;
     Ray *ray;
     Ray **rays;
     int **map;
@@ -41,17 +43,13 @@ int main(void) {
     fscanf(input, "%d %d", &n, &rays_count);
     
     rays = (Ray**)malloc(sizeof(Ray*) * rays_count);
-    ray = (Ray*)malloc(sizeof(Ray));
     covers = (float***)malloc(sizeof(float**) * rays_count);
     
     for (int i = 0; i < rays_count; i++) {
-        rays[i] = (Ray*)malloc(sizeof(Ray));
-        fscanf(input, "%f %f %f %f %c", &rays[i]->power, &rays[i]->x, &rays[i]->y,\
-            &rays[i]->angle, &rays[i]->symb);
-        rays[i]->angle = rays[i]->angle * M_PI / 180;
-        rays[i]->dx = cos(rays[i]->angle);
-        rays[i]->dy = sin(rays[i]->angle);
+        fscanf(input, "%f %f %f %f %c", &power, &x, &y,\
+            &angle, &symb);
 
+        rays[i] = init_ray(&x, &y, &angle, &power, &symb);
         covers[i] = (float**)malloc(sizeof(float*) * n);
         for (int j = 0; j < n; j++) {
             covers[i][j] = (float*)malloc(sizeof(float) * n);
