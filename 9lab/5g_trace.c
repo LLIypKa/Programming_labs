@@ -40,37 +40,53 @@ int main(void) {
 
     int n, rays_count;
     Ray *ray;
+    Ray **rays;
     int **map;
     float **cover;
-    ray = (Ray*)malloc(sizeof(Ray));
+
     fscanf(input, "%d %d", &n, &rays_count);
-    fscanf(input, "%f %f %f %f %c", &ray->power, &ray->x, &ray->y, &ray->angle, &ray->symb);
+    
+    rays = (Ray**)malloc(sizeof(Ray*) * rays_count);
+    ray = (Ray*)malloc(sizeof(Ray));
+    float ***covers = (float***)malloc(sizeof(float**) * rays_count);
+    
+    for (int i = 0; i < rays_count; i++) {
+        rays[i] = (Ray*)malloc(sizeof(Ray));
+        fscanf(input, "%f %f %f %f %c", &rays[i]->power, &rays[i]->x, &rays[i]->y,\
+            &rays[i]->angle, &rays[i]->symb);
+        rays[i]->angle = rays[i]->angle * M_PI / 180;
+        rays[i]->dx = cos(rays[i]->angle);
+        rays[i]->dy = sin(rays[i]->angle);
+
+        covers[i] = (float**)malloc(sizeof(float*) * n);
+        for (int j = 0; j < n; j++) {
+            covers[i][j] = (float*)malloc(sizeof(float) * n);
+            for (int z = 0; z < n; z++) {
+                covers[i][j][z] = 0;
+            }
+        }
+    }
+    ray = rays[0];
+    
     map = (int**)malloc(sizeof(int*) * n);
-    cover = (float**)malloc(sizeof(float*) * n);
     for (int i = 0; i < n; i++) {
         map[i] = (int*)malloc(sizeof(int) * n);
-        cover[i] = (float*)malloc(sizeof(float) * n);
         for (int j = 0; j < n; j++) {
             fscanf(input, "%d", &map[i][j]);
-            cover[i][j] = 0;
         }
     }
 
-    ray->angle = ray->angle * M_PI / 180;
-    ray->dx = cos(ray->angle);
-    ray->dy = sin(ray->angle);
-
-    raytrace(ray, map, cover, &n);
-    print_cover(cover, &n, ray);
+    raytrace(ray, map, covers[0], &n);
+    print_cover(covers[0], &n, ray);
 
     fclose(input);
     for (int i = 0; i < n; i++) {
         free(map[i]);
-        free(cover[i]);
+        //free(cover[i]);
     }
     free(map);
     free(cover);
-    free(ray);
+    //free(ray);
     return EXIT_SUCCESS;
 }
 
@@ -89,6 +105,12 @@ void raytrace(Ray *ray, int **map, float **cover,  int *n) {
         //из-за отбрасывания вещественной части визуализация не корректна
         cx = (int) ray->x;
         cy = (int) ray->y;
+
+        // Луч покинул карту — прекращаем трассировку
+        if (cx < 0 || cx >= *n || cy < 0 || cy >= *n) {
+            break;
+        }
+
         material = map[cx][cy];
         update_power(ray, material);
         cover[cx][cy] += ray->power;
@@ -102,6 +124,12 @@ void raytrace(Ray *ray, int **map, float **cover,  int *n) {
         
         int cx_new = (int) (ray->x);
         int cy_new = (int) (ray->y);
+
+        // Новые координаты за пределами — стен не проверяем,
+        // на следующей итерации while сработает break
+        if (cx_new < 0 || cx_new >= *n || cy_new < 0 || cy_new >= *n) {
+            continue;
+        }
 
         //при разделении на библиотеки лучше бы тоже пихнуть в работу с лучом
         if (map[cx_new][cy_new] != 0) {    
