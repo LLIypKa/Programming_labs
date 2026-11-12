@@ -29,6 +29,8 @@ int print_matrix(void* matrix, size_t n, size_t m, enum types type) {
                 case DOUBLE: 
                     printf(" %.2f ", ((double *)matrix)[k]); 
                     break;
+                case CHAR:
+                    printf(" %c ", ((char*)matrix)[k]);
                 default: 
                     return -1;
             }
