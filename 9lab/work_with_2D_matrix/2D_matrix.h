@@ -1,10 +1,8 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
-/// @brief печатает двумерную матрицу
-/// @param matrix матрица с неизвестным типом
-/// @param n количество строк в матрице
-/// @param m количество столбцов в матрице
-void print_matrix(void **matrix, int *n, int *m);
+enum types { INT, FLOAT, DOUBLE };
+
+int print_matrix(void *matrix, size_t n, size_t m, enum types type);
 
 #endif /*MATRIX_H*/

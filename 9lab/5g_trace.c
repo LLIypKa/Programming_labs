@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include "work_with_ray/ray.h"
+#include "work_with_2D_matrix/2D_matrix.h"
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -18,9 +19,9 @@
 #define CONCRETE_WEAKING 0.5f
 #define GLASS_WEAKING 0.8f
 
-void raytrace(Ray*, int**, float**, int*); 
-void print_map(int**, int*, Ray*);
-void print_cover(float**, int*, Ray*);
+void raytrace(Ray*, int*, float*, int*); 
+void print_map(int*, int*, Ray*);
+void print_cover(float*, int*, Ray*);
 void update_power(Ray*, int);
 
 int main(void) {
@@ -34,50 +35,41 @@ int main(void) {
     int n, rays_count;
     float x, y, power, angle, dx, dy;
     char symb;
-    Ray *ray;
     Ray **rays;
-    int **map;
-    float **cover;
-    float ***covers;
+    int *map;
+    float **covers;
 
     fscanf(input, "%d %d", &n, &rays_count);
     
     rays = (Ray**)malloc(sizeof(Ray*) * rays_count);
-    covers = (float***)malloc(sizeof(float**) * rays_count);
+    covers = (float**)malloc(sizeof(float*) * rays_count);
     
     for (int i = 0; i < rays_count; i++) {
         fscanf(input, "%f %f %f %f %c", &power, &x, &y,\
             &angle, &symb);
 
         rays[i] = init_ray(&x, &y, &angle, &power, &symb);
-        covers[i] = (float**)malloc(sizeof(float*) * n);
-        for (int j = 0; j < n; j++) {
-            covers[i][j] = (float*)malloc(sizeof(float) * n);
-            for (int z = 0; z < n; z++) {
-                covers[i][j][z] = 0;
-            }
-        }
+        covers[i] = (float*)calloc(n * n, sizeof(float));
     }
-    ray = rays[0];
     
-    map = (int**)malloc(sizeof(int*) * n);
+    map = (int*)malloc(sizeof(int) * n * n);
     for (int i = 0; i < n; i++) {
-        map[i] = (int*)malloc(sizeof(int) * n);
         for (int j = 0; j < n; j++) {
-            fscanf(input, "%d", &map[i][j]);
+            fscanf(input, "%d", &map[i * n + j]);
         }
     }
 
-    raytrace(ray, map, covers[0], &n);
-    print_cover(covers[0], &n, ray);
+    raytrace(rays[0], map, covers[0], &n);
+    //print_cover(covers[0], &n, rays[0]);
+    print_matrix(covers[0], n, n, FLOAT);
 
     fclose(input);
     for (int i = 0; i < n; i++) {
-        free(map[i]);
+        //free(map[i]);
         //free(cover[i]);
     }
     free(map);
-    free(cover);
+    //free(cover);
     //free(ray);
     return EXIT_SUCCESS;
 }
@@ -87,7 +79,7 @@ int main(void) {
 /// @param map карта города
 /// @param cover карта покрытия
 /// @param n размерность карты
-void raytrace(Ray *ray, int **map, float **cover,  int *n) {
+void raytrace(Ray *ray, int *map, float *cover,  int *n) {
     int cx, cy;
     bool is_need_to_update = false;
     int material;
@@ -103,12 +95,13 @@ void raytrace(Ray *ray, int **map, float **cover,  int *n) {
             break;
         }
 
-        material = map[cx][cy];
+        material = map[cx * *n + cy];
         update_power(ray, material);
-        cover[cx][cy] += ray->power;
+        cover[cx * *n + cy] += ray->power;
         
         is_need_to_update = false;
-        print_map(map, n, ray);
+        print_matrix(map, (size_t) (*n), (size_t) (*n), INT);
+        //print_map(map, n, ray);
         usleep(200000);
         fflush(stdout);
 
@@ -124,9 +117,9 @@ void raytrace(Ray *ray, int **map, float **cover,  int *n) {
         }
 
         //при разделении на библиотеки лучше бы тоже пихнуть в работу с лучом
-        if (map[cx_new][cy_new] != 0) {    
-            bool wall_vert = (cx_new != cx) && (map[cx_new][cy] != 0);  // стена по x
-            bool wall_horiz = (cy_new != cy) && (map[cx][cy_new] != 0); // стена по y
+        if (map[cx_new * *n + cy_new] != 0) {    
+            bool wall_vert = (cx_new != cx) && (map[cx_new * *n + cy] != 0);  // стена по x
+            bool wall_horiz = (cy_new != cy) && (map[cx * *n + cy_new] != 0); // стена по y
 
             if (wall_vert)  { ray->dx = -ray->dx; is_need_to_update = true; }
             if (wall_horiz) { ray->dy = -ray->dy; is_need_to_update = true; }
@@ -134,20 +127,20 @@ void raytrace(Ray *ray, int **map, float **cover,  int *n) {
 
         if (is_need_to_update) {
             update_ray_coordinates(ray, STEP);
-            material = map[cx_new][cy_new];
+            material = map[cx_new * *n + cy_new];
             update_power(ray, material);
         }
     } 
 }
 
-void print_map(int **map, int *n, Ray *ray) {
+void print_map(int *map, int *n, Ray *ray) {
     for (int i = 0; i < *n; i++) {
         for (int j = 0; j < *n; j++) {
             if (i == (int)ray->x && j == (int)ray->y) {
                 printf(" %c ", ray->symb);
             }
             else {
-                printf(" %d ", map[i][j]);
+                printf(" %d ", map[i * *n + j]);
             }
         }
         printf("\n");
@@ -156,10 +149,10 @@ void print_map(int **map, int *n, Ray *ray) {
     printf("Ray coordinates (%.2f, %.2f), power: %.12f\n", ray->x, ray->y, ray->power);
 }
 
-void print_cover(float **cover, int *n, Ray *ray) {
+void print_cover(float *cover, int *n, Ray *ray) {
     for (int i = 0; i < *n; i++) {
         for (int j = 0; j < *n; j++) {    
-            printf(" %.12f ", cover[i][j]);
+            printf(" %.12f ", cover[i * *n + j]);
         }
         printf("\n");
     }
