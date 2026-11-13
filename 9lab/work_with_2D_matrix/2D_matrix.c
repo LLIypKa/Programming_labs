@@ -13,23 +13,23 @@
 /// @param m количество столбцов в матрице
 /// @param type тип элементов
 /// @returns 0 - успешно выведено, -1 - возникли ошибки
-int print_matrix(void* matrix, size_t n, size_t m, enum types type) {
+int print_matrix(const void* matrix, size_t n, size_t m, enum types type) {
     if (!matrix) return -1;
 
     for (size_t i = 0; i < n; i++) {
         for (size_t j = 0; j < m; j++) {
             size_t k = i * m + j;          
             switch (type) {
-                case INT:    
+                case MATRIX_INT:    
                     printf(" %d ", ((int*)matrix)[k]); 
                     break;
-                case FLOAT:  
+                case MATRIX_FLOAT:  
                     printf(" %.12f ", ((float*)matrix)[k]); 
                     break;
-                case DOUBLE: 
+                case MATRIX_DOUBLE: 
                     printf(" %.12f ", ((double *)matrix)[k]); 
                     break;
-                case CHAR:
+                case MATRIX_CHAR:
                     printf(" %c ", ((char*)matrix)[k]);
                     break;
                 default: 

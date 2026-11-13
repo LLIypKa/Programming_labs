@@ -6,9 +6,6 @@
 #include <stdbool.h>
 #include "work_with_ray/ray.h"
 #include "work_with_2D_matrix/2D_matrix.h"
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
 
 //TODO масштабировать до нескольких лучей (осталось сделать вывод и пофиксить расчёт координат)
 //TODO придумать что-нибудь с материалами (возможно сделатькарту материалов)
@@ -22,7 +19,7 @@
 void raytrace(Ray**, const char*, float**, int, int); 
 int trace_step(Ray*, char*, const char*, float*, int);
 void print_covers(float**, int, Ray**, int);
-void update_power(Ray*, int);
+void update_power(Ray*, char);
 bool out_of_map(int, int, int);
 
 int main(void) {
@@ -49,7 +46,7 @@ int main(void) {
         fscanf(input, "%f %f %f %f %c", &power, &x, &y,\
             &angle, &symb);
 
-        rays[i] = init_ray(&x, &y, &angle, &power, &symb);
+        rays[i] = init_ray(x, y, angle, power, symb);
         covers[i] = (float*)calloc(n * n, sizeof(float));
     }
     
@@ -99,7 +96,7 @@ void raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count
             }
         }
 
-        print_matrix(map_with_rays, (size_t) (n), (size_t) (n), CHAR);
+        print_matrix(map_with_rays, (size_t) (n), (size_t) (n), MATRIX_CHAR);
         usleep(200000);
         fflush(stdout);
     } 
@@ -115,7 +112,8 @@ void raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count
 /// @param n размерность карт
 /// @return возвращает код материала или -1 (если выполнилась безуспешно)
 int trace_step(Ray *ray, char *map_with_rays, const char *map, float *cover, int n) {
-    int cx, cy, cx_new, cy_new, material;
+    int cx, cy, cx_new, cy_new;
+    char material;
     bool is_need_to_update = false;
 
     //получим старые координаты
@@ -169,7 +167,7 @@ int trace_step(Ray *ray, char *map_with_rays, const char *map, float *cover, int
 void print_covers(float **covers, int n, Ray **rays, int rays_count) {
     for (int z = 0; z < rays_count; z++) {
         printf("Cover map for %c ray\n", rays[z]->symb);
-        print_matrix(covers[z], (size_t) n, (size_t) n, FLOAT);
+        print_matrix(covers[z], (size_t) n, (size_t) n, MATRIX_FLOAT);
     }
 }
 
@@ -183,7 +181,7 @@ bool out_of_map(int x, int y, int n) {
 }
 
 //после проработки материалов перенести в ray.h/ray.c
-void update_power(Ray *ray, int material) {
+void update_power(Ray *ray, char material) {
     switch (material)
     {
         case '0':
