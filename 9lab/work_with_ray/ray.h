@@ -15,5 +15,6 @@ typedef struct ray {
 
 void update_ray_coordinates(Ray *ray, float step);
 Ray* init_ray(float x, float y, float angle, float power, char symb);
+void update_power(Ray *ray, float multiplier);
 
 #endif /*RAY_H*/

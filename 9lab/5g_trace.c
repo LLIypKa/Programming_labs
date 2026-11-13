@@ -19,7 +19,6 @@
 void raytrace(Ray**, const char*, float**, int, int); 
 int trace_step(Ray*, char*, const char*, float*, int);
 void print_covers(float**, int, Ray**, int);
-void update_power(Ray*, char);
 bool out_of_map(int, int, int);
 
 int main(void) {
@@ -157,7 +156,18 @@ int trace_step(Ray *ray, char *map_with_rays, const char *map, float *cover, int
     }
 
     material = map[cx_new * n + cy_new];
-    update_power(ray, material);
+    switch (material)
+    {
+        case '0':
+            update_power(ray, AIR_WEAKING);
+            break;
+        case '1':
+            update_power(ray, CONCRETE_WEAKING);
+            break;
+        case '2':
+            update_power(ray, GLASS_WEAKING);
+            break;
+    }
     cover[cx_new * n + cy_new] += ray->power;
     map_with_rays[cx_new * n + cy_new] = ray->symb;
 
@@ -178,20 +188,4 @@ void print_covers(float **covers, int n, Ray **rays, int rays_count) {
 /// @return вышел - true, не вышел - false
 bool out_of_map(int x, int y, int n) {
     return x < 0 || x >= n || y < 0 || y >= n;
-}
-
-//после проработки материалов перенести в ray.h/ray.c
-void update_power(Ray *ray, char material) {
-    switch (material)
-    {
-        case '0':
-            ray->power *= AIR_WEAKING;
-            break;
-        case '1':
-            ray->power *= CONCRETE_WEAKING;
-            break;
-        case '2':
-            ray->power *= GLASS_WEAKING;
-            break;
-    }
 }

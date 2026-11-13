@@ -32,3 +32,10 @@ Ray* init_ray(float x, float y, float angle, float power, char symb) {
 
     return ray;
 }
+
+/// @brief обновляет мощность луча
+/// @param ray луч
+/// @param multiplier множитель
+void update_power(Ray *ray, float multiplier) {
+    ray->power *= multiplier;
+}
