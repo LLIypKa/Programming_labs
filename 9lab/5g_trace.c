@@ -19,8 +19,8 @@
 #define CONCRETE_WEAKING 0.5f
 #define GLASS_WEAKING 0.8f
 
-void raytrace(Ray**, int*, float**, int, int); 
-int trace_step(Ray*, int*, float*, int);
+void raytrace(Ray**, const char*, float**, int, int); 
+int trace_step(Ray*, char*, const char*, float*, int);
 void print_cover(float*, int*, Ray*);
 void update_power(Ray*, int);
 bool out_of_map(int, int, int);
@@ -33,11 +33,11 @@ int main(void) {
         return EXIT_FAILURE;
     }
 
-    int n, rays_count;
-    float x, y, power, angle, dx, dy;
+    int n, rays_count, value_buf;
+    float x, y, power, angle;
     char symb;
     Ray **rays;
-    int *map;
+    char *map;
     float **covers;
 
     fscanf(input, "%d %d", &n, &rays_count);
@@ -53,10 +53,11 @@ int main(void) {
         covers[i] = (float*)calloc(n * n, sizeof(float));
     }
     
-    map = (int*)malloc(sizeof(int) * n * n);
+    map = (char*)malloc(sizeof(char) * n * n);
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
-            fscanf(input, "%d", &map[i * n + j]);
+            fscanf(input, "%d", &value_buf);
+            map[i * n + j] = '0' + (unsigned char) value_buf;
         }
     }
 
@@ -83,15 +84,15 @@ int main(void) {
 /// @param covers карта покрытия
 /// @param n размерность карты
 /// @param rays_count количество лучей
-void raytrace(Ray **rays, int *map, float **covers, int n, int rays_count) {
+void raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count) {
     bool trace = true;
-    int *map_with_rays = (int*)malloc(sizeof(int) * n * n);
+    char *map_with_rays = (char*)malloc(sizeof(char) * n * n);
 
     while (trace) {
-        memcpy(map_with_rays, map, n * n * sizeof(int));
+        memcpy(map_with_rays, map, n * n * sizeof(char));
         for (int i = 0; i < rays_count; i++) {
             Ray *ray = rays[i];
-            trace_step(ray, map_with_rays, covers[i], n);
+            trace_step(ray, map_with_rays, map, covers[i], n);
             printf("Ray \'%c\' coordinates (%.2f, %.2f), power: %.12f\n",\
                 ray->symb, ray->x, ray->y, ray->power);
             if (fabs(ray->power) <= 1e-12) {
@@ -99,7 +100,7 @@ void raytrace(Ray **rays, int *map, float **covers, int n, int rays_count) {
             }
         }
 
-        print_matrix(map_with_rays, (size_t) (n), (size_t) (n), INT);
+        print_matrix(map_with_rays, (size_t) (n), (size_t) (n), CHAR);
         usleep(200000);
         fflush(stdout);
     } 
@@ -108,10 +109,11 @@ void raytrace(Ray **rays, int *map, float **covers, int n, int rays_count) {
 /// @brief делает шаг трассировки для конкретного луча
 /// @param ray луч
 /// @param map_with_rays карта города ( подразумевается измененная, с другими лучами)
+/// @param map карта города без изменений
 /// @param cover карта покрытия луча
 /// @param n размерность карт
-/// @return возвращает код материала или -1 (если выполнилась безуспешно) 
-int trace_step(Ray *ray, int *map, float *cover, int n) {
+/// @return возвращает код материала или -1 (если выполнилась безуспешно)
+int trace_step(Ray *ray, char *map_with_rays, const char *map, float *cover, int n) {
     int cx, cy, cx_new, cy_new, material;
     bool is_need_to_update = false;
 
@@ -136,9 +138,9 @@ int trace_step(Ray *ray, int *map, float *cover, int n) {
     }
 
     //при разделении на библиотеки лучше бы тоже пихнуть в работу с лучом
-    if (map[cx_new * n + cy_new] != 0) {    
-        bool wall_vert = (cx_new != cx) && (map[cx_new * n + cy] != 0);  // стена по x
-        bool wall_horiz = (cy_new != cy) && (map[cx * n + cy_new] != 0); // стена по y
+    if (map[cx_new * n + cy_new] != '0') {    
+        bool wall_vert = (cx_new != cx) && (map[cx_new * n + cy] != '0');  // стена по x
+        bool wall_horiz = (cy_new != cy) && (map[cx * n + cy_new] != '0'); // стена по y
 
         if (wall_vert)  { ray->dx = -ray->dx; is_need_to_update = true; }
         if (wall_horiz) { ray->dy = -ray->dy; is_need_to_update = true; }
@@ -158,6 +160,7 @@ int trace_step(Ray *ray, int *map, float *cover, int n) {
     material = map[cx_new * n + cy_new];
     update_power(ray, material);
     cover[cx_new * n + cy_new] += ray->power;
+    map_with_rays[cx_new * n + cy_new] = ray->symb;
 
     return material;
 }
@@ -184,13 +187,13 @@ bool out_of_map(int x, int y, int n) {
 void update_power(Ray *ray, int material) {
     switch (material)
     {
-        case 0:
+        case '0':
             ray->power *= AIR_WEAKING;
             break;
-        case 1:
+        case '1':
             ray->power *= CONCRETE_WEAKING;
             break;
-        case 2:
+        case '2':
             ray->power *= GLASS_WEAKING;
             break;
     }
