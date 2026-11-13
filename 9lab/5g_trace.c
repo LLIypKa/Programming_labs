@@ -12,7 +12,7 @@
 
 //TODO масштабировать до нескольких лучей (осталось сделать вывод и пофиксить расчёт координат)
 //TODO придумать что-нибудь с материалами (возможно сделатькарту материалов)
-//TODO исправить накопление силы в стене
+//TODO исправить накопление силы в стене (относится к фиксу для расчёта координат)
 
 #define STEP 0.5f
 #define AIR_WEAKING 0.99f
@@ -21,7 +21,7 @@
 
 void raytrace(Ray**, const char*, float**, int, int); 
 int trace_step(Ray*, char*, const char*, float*, int);
-void print_cover(float*, int*, Ray*);
+void print_covers(float**, int, Ray**, int);
 void update_power(Ray*, int);
 bool out_of_map(int, int, int);
 
@@ -62,8 +62,7 @@ int main(void) {
     }
 
     raytrace(rays, map, covers, n, rays_count);
-    //print_cover(covers[0], &n, rays[0]);
-    //print_matrix(covers[0], n, n, FLOAT);
+    print_covers(covers, n, rays, rays_count);
 
     fclose(input);
     for (int i = 0; i < rays_count; i++) {
@@ -104,6 +103,8 @@ void raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count
         usleep(200000);
         fflush(stdout);
     } 
+
+    free(map_with_rays);
 }
 
 /// @brief делает шаг трассировки для конкретного луча
@@ -165,12 +166,10 @@ int trace_step(Ray *ray, char *map_with_rays, const char *map, float *cover, int
     return material;
 }
 
-void print_cover(float *cover, int *n, Ray *ray) {
-    for (int i = 0; i < *n; i++) {
-        for (int j = 0; j < *n; j++) {    
-            printf(" %.12f ", cover[i * *n + j]);
-        }
-        printf("\n");
+void print_covers(float **covers, int n, Ray **rays, int rays_count) {
+    for (int z = 0; z < rays_count; z++) {
+        printf("Cover map for %c ray\n", rays[z]->symb);
+        print_matrix(covers[z], (size_t) n, (size_t) n, FLOAT);
     }
 }
 
