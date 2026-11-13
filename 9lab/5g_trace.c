@@ -7,7 +7,7 @@
 #include "work_with_ray/ray.h"
 #include "work_with_2D_matrix/2D_matrix.h"
 
-//TODO масштабировать до нескольких лучей (осталось сделать вывод и пофиксить расчёт координат)
+//TODO пофиксить расчёт координат
 //TODO придумать что-нибудь с материалами (возможно сделатькарту материалов)
 //TODO исправить накопление силы в стене (относится к фиксу для расчёта координат)
 
@@ -39,6 +39,7 @@ int main(void) {
     fscanf(input, "%d %d", &n, &rays_count);
     
     rays = (Ray**)malloc(sizeof(Ray*) * rays_count);
+    // убрать явное привидение
     covers = (float**)malloc(sizeof(float*) * rays_count);
     
     for (int i = 0; i < rays_count; i++) {
@@ -87,7 +88,8 @@ void raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count
         memcpy(map_with_rays, map, n * n * sizeof(char));
         for (int i = 0; i < rays_count; i++) {
             Ray *ray = rays[i];
-            trace_step(ray, map_with_rays, map, covers[i], n);
+            int result = trace_step(ray, map_with_rays, map, covers[i], n);
+            if (result == EXIT_FAILURE) continue;
             printf("Ray \'%c\' coordinates (%.2f, %.2f), power: %.12f\n",\
                 ray->symb, ray->x, ray->y, ray->power);
             if (fabs(ray->power) <= 1e-12) {
@@ -96,7 +98,7 @@ void raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count
         }
 
         print_matrix(map_with_rays, (size_t) (n), (size_t) (n), MATRIX_CHAR);
-        usleep(200000);
+        usleep(20000);
         fflush(stdout);
     } 
 
@@ -109,7 +111,7 @@ void raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count
 /// @param map карта города без изменений
 /// @param cover карта покрытия луча
 /// @param n размерность карт
-/// @return возвращает код материала или -1 (если выполнилась безуспешно)
+/// @return возвращает код возврата
 int trace_step(Ray *ray, char *map_with_rays, const char *map, float *cover, int n) {
     int cx, cy, cx_new, cy_new;
     char material;
@@ -132,7 +134,7 @@ int trace_step(Ray *ray, char *map_with_rays, const char *map, float *cover, int
     // Новые координаты за пределами — стен не проверяем
     if (out_of_map(cx_new, cy_new, n)) {
         ray->power = 0.0f; 
-        return -1;
+        return EXIT_FAILURE;
     }
 
     //при разделении на библиотеки лучше бы тоже пихнуть в работу с лучом
@@ -151,7 +153,7 @@ int trace_step(Ray *ray, char *map_with_rays, const char *map, float *cover, int
 
         if (out_of_map(cx_new, cy_new, n)) {
             ray->power = 0.0f; 
-            return -1;
+            return EXIT_FAILURE;
         }
     }
 
@@ -171,7 +173,7 @@ int trace_step(Ray *ray, char *map_with_rays, const char *map, float *cover, int
     cover[cx_new * n + cy_new] += ray->power;
     map_with_rays[cx_new * n + cy_new] = ray->symb;
 
-    return material;
+    return EXIT_SUCCESS;
 }
 
 void print_covers(float **covers, int n, Ray **rays, int rays_count) {
