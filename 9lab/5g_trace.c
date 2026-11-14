@@ -6,7 +6,6 @@
 #include "work_with_ray/ray.h"
 #include "work_with_2D_matrix/2D_matrix.h"
 
-//TODO пофиксить расчёт координат
 //TODO придумать что-нибудь с материалами (возможно сделатькарту материалов)
 //TODO исправить накопление силы в стене (относится к фиксу для расчёта координат)
 
@@ -19,7 +18,9 @@
 void raytrace(Ray**, const char*, float**, int, int); 
 int trace_step(Ray*, char*, const char*, float*, int);
 void print_covers(float**, int, Ray**, int);
-bool out_of_map(int, int, int);
+bool out_of_map(Ray*, int);
+bool check_and_proccess_collision(Ray*, int, int, const char*, int);
+void init_power_update(Ray*, char);
 
 int main(void) {
     FILE* input = fopen("map.txt", "r");
@@ -38,16 +39,15 @@ int main(void) {
 
     fscanf(input, "%d %d", &n, &rays_count);
     
-    rays = (Ray**)malloc(sizeof(Ray*) * rays_count);
-    // убрать явное привидение
-    covers = (float**)malloc(sizeof(float*) * rays_count);
+    rays = malloc(sizeof(Ray*) * rays_count);
+    covers = malloc(sizeof(float*) * rays_count);
     
     for (int i = 0; i < rays_count; i++) {
         fscanf(input, "%f %f %f %f %c", &power, &x, &y,\
             &angle, &symb);
 
         rays[i] = init_ray(x, y, angle, power, symb);
-        covers[i] = (float*)calloc(n * n, sizeof(float));
+        covers[i] = calloc(n * n, sizeof(float));
     }
     
     map = (char*)malloc(sizeof(char) * n * n);
@@ -82,7 +82,7 @@ int main(void) {
 /// @param rays_count количество лучей
 void raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count) {
     bool trace = true;
-    char *map_with_rays = (char*)malloc(sizeof(char) * n * n);
+    char *map_with_rays = malloc(sizeof(char) * n * n);
 
     while (trace) {
         memcpy(map_with_rays, map, n * n * sizeof(char));
@@ -115,49 +115,66 @@ void raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count
 int trace_step(Ray *ray, char *map_with_rays, const char *map, float *cover, int n) {
     int cx, cy, cx_new, cy_new;
     char material;
-    bool is_need_to_update = false;
 
     //получим старые координаты
     //из-за отбрасывания вещественной части визуализация не корректна
-    cx = (int) ray->x;
-    cy = (int) ray->y;
-
-    if (out_of_map(cx, cy, n)) {
-        ray->power = 0.0f;
-        return -1;
-    }
+    cx = (int)ray->x;
+    cy = (int)ray->y;
 
     update_ray_coordinates(ray, STEP);
     cx_new = (int) (ray->x);
     cy_new = (int) (ray->y);
 
     // Новые координаты за пределами — стен не проверяем
-    if (out_of_map(cx_new, cy_new, n)) {
+    if (out_of_map(ray, n)) {
         ray->power = 0.0f; 
         return EXIT_FAILURE;
     }
 
-    //при разделении на библиотеки лучше бы тоже пихнуть в работу с лучом
-    if (map[cx_new * n + cy_new] != '0') {    
-        bool wall_vert = (cx_new != cx) && (map[cx_new * n + cy] != '0');  // стена по x
-        bool wall_horiz = (cy_new != cy) && (map[cx * n + cy_new] != '0'); // стена по y
+    if (check_and_proccess_collision(ray, cx, cy, map, n)) {
+        material = map[cx_new * n + cy_new];
+        init_power_update(ray, material);
 
-        if (wall_vert)  { ray->dx = -ray->dx; is_need_to_update = true; }
-        if (wall_horiz) { ray->dy = -ray->dy; is_need_to_update = true; }
-    }
-
-    if (is_need_to_update) {
-        update_ray_coordinates(ray, STEP);
-        cx_new = (int) (ray->x);
-        cy_new = (int) (ray->y);
-
-        if (out_of_map(cx_new, cy_new, n)) {
-            ray->power = 0.0f; 
-            return EXIT_FAILURE;
-        }
+        return EXIT_SUCCESS;
     }
 
     material = map[cx_new * n + cy_new];
+    init_power_update(ray, material);
+    cover[cx_new * n + cy_new] += ray->power;
+    map_with_rays[cx_new * n + cy_new] = ray->symb;
+
+    return EXIT_SUCCESS;
+}
+
+/// @brief проверяет, столкнулся ли луч с препятствием
+/// @param ray луч со новыми координатам
+/// @param x старая x-координата луча
+/// @param y старая y-координата луча
+/// @param map карта
+/// @param n размерность карты
+/// @return true - столкнулся, false - не столкнулся
+bool check_and_proccess_collision(Ray *ray, int x, int y, \
+        const char *map, int n) {
+    int x_new = (int)ray->x;
+    int y_new = (int)ray->y;
+
+    if (map[((int)x_new) * n + ((int)y_new)] != '0') {    
+        bool wall_vert = (x_new != x) && (map[x_new * n + y] != '0');  // стена по x
+        bool wall_horiz = (y_new != y) && (map[x * n + y_new] != '0'); // стена по y
+
+        if (wall_vert) ray->dx = -ray->dx;
+        if (wall_horiz) ray->dy = -ray->dy; 
+
+        ray->x = x;
+        ray->y = y;
+
+        return wall_horiz || wall_vert;
+    }
+
+    return false;
+}
+
+void init_power_update(Ray *ray, char material) {
     switch (material)
     {
         case '0':
@@ -170,10 +187,6 @@ int trace_step(Ray *ray, char *map_with_rays, const char *map, float *cover, int
             update_power(ray, GLASS_WEAKING);
             break;
     }
-    cover[cx_new * n + cy_new] += ray->power;
-    map_with_rays[cx_new * n + cy_new] = ray->symb;
-
-    return EXIT_SUCCESS;
 }
 
 void print_covers(float **covers, int n, Ray **rays, int rays_count) {
@@ -184,10 +197,9 @@ void print_covers(float **covers, int n, Ray **rays, int rays_count) {
 }
 
 /// @brief проверка на выход за пределы карты
-/// @param x координата
-/// @param y координата
+/// @param ray луч
 /// @param n размер города
 /// @return вышел - true, не вышел - false
-bool out_of_map(int x, int y, int n) {
-    return x < 0 || x >= n || y < 0 || y >= n;
+bool out_of_map(Ray *ray, int n) {
+    return ray->x < 0.0f || ray->x >= n || ray->y < 0.0f || ray->y >= n;
 }

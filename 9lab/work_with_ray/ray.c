@@ -18,7 +18,7 @@ void update_ray_coordinates(Ray *ray, float step) {
 /// @param symb символ для отображения луча
 /// @return указатель на выделенную память или NULL при ошибке выделения
 Ray* init_ray(float x, float y, float angle, float power, char symb) {
-    Ray *ray = (Ray*)malloc(sizeof(Ray));
+    Ray *ray = malloc(sizeof(Ray));
 
     if (ray != NULL) {
         ray->x = x;
