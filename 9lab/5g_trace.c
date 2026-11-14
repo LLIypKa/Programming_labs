@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <math.h>
 #include <string.h>
 #include <stdbool.h>
 #include "work_with_ray/ray.h"
@@ -15,6 +14,7 @@
 #define AIR_WEAKING 0.99f
 #define CONCRETE_WEAKING 0.5f
 #define GLASS_WEAKING 0.8f
+#define EXP 1e-12
 
 void raytrace(Ray**, const char*, float**, int, int); 
 int trace_step(Ray*, char*, const char*, float*, int);
@@ -89,11 +89,11 @@ void raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count
         for (int i = 0; i < rays_count; i++) {
             Ray *ray = rays[i];
             int result = trace_step(ray, map_with_rays, map, covers[i], n);
-            if (result == EXIT_FAILURE) continue;
             printf("Ray \'%c\' coordinates (%.2f, %.2f), power: %.12f\n",\
                 ray->symb, ray->x, ray->y, ray->power);
-            if (fabs(ray->power) <= 1e-12) {
+            if (result == EXIT_FAILURE || ray->power <= EXP) {
                 trace = false;
+                continue;
             }
         }
 
