@@ -13,13 +13,13 @@
 #define AIR_WEAKING 0.99f
 #define CONCRETE_WEAKING 0.5f
 #define GLASS_WEAKING 0.8f
-#define EXP 1e-12
+#define EXP 0.01
 
 void raytrace(Ray**, const char*, float**, int, int); 
 int trace_step(Ray*, char*, const char*, float*, int);
 void print_covers(float**, int, Ray**, int);
 bool out_of_map(Ray*, int);
-bool check_and_proccess_collision(Ray*, int, int, const char*, int);
+bool check_and_proccess_collision(Ray*, float, float, const char*, int);
 void init_power_update(Ray*, char);
 
 int main(void) {
@@ -113,13 +113,14 @@ void raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count
 /// @param n размерность карт
 /// @return возвращает код возврата
 int trace_step(Ray *ray, char *map_with_rays, const char *map, float *cover, int n) {
-    int cx, cy, cx_new, cy_new;
+    float cx, cy;
+    int cx_new, cy_new;
     char material;
 
     //получим старые координаты
     //из-за отбрасывания вещественной части визуализация не корректна
-    cx = (int)ray->x;
-    cy = (int)ray->y;
+    cx = ray->x;
+    cy = ray->y;
 
     update_ray_coordinates(ray, STEP);
     cx_new = (int) (ray->x);
@@ -153,14 +154,14 @@ int trace_step(Ray *ray, char *map_with_rays, const char *map, float *cover, int
 /// @param map карта
 /// @param n размерность карты
 /// @return true - столкнулся, false - не столкнулся
-bool check_and_proccess_collision(Ray *ray, int x, int y, \
+bool check_and_proccess_collision(Ray *ray, float x, float y, \
         const char *map, int n) {
     int x_new = (int)ray->x;
     int y_new = (int)ray->y;
 
     if (map[((int)x_new) * n + ((int)y_new)] != '0') {    
-        bool wall_vert = (x_new != x) && (map[x_new * n + y] != '0');  // стена по x
-        bool wall_horiz = (y_new != y) && (map[x * n + y_new] != '0'); // стена по y
+        bool wall_vert = (x_new != (int)x) && (map[x_new * n + (int)y] != '0');  // стена по x
+        bool wall_horiz = (y_new != (int)y) && (map[((int)x) * n + y_new] != '0'); // стена по y
 
         if (wall_vert) ray->dx = -ray->dx;
         if (wall_horiz) ray->dy = -ray->dy; 
