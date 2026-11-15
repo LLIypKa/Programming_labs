@@ -18,7 +18,7 @@ void raytrace(Ray**, const char*, float**, int, int);
 int trace_step(Ray*, char*, const char*, float*, int);
 void print_covers(float**, int, Ray**, int);
 bool out_of_map(Ray*, int);
-bool check_and_proccess_collision(Ray*, float, float, const char*, int);
+bool check_and_process_collision(Ray*, float, float, const char*, int);
 void init_power_update(Ray*, char);
 
 int main(void) {
@@ -37,16 +37,20 @@ int main(void) {
     float **covers;
 
     fscanf(input, "%d %d", &n, &rays_count);
+    if (rays_count <= 0 || n <= 0) {
+        printf("Некорректные данные: размерность карты и количество лучей должны быть > 0\n");
+        return EXIT_FAILURE;
+    }
     
     rays = malloc(sizeof(Ray*) * rays_count);
     if (rays == NULL) {
-        printf("Ошибка чтения файла\n");
+        printf("Ошибка выделения памяти для лучей\n");
         return EXIT_FAILURE;
     }
 
     covers = malloc(sizeof(float*) * rays_count);
     if (covers == NULL) {
-        printf("Ошибка чтения файла\n");
+        printf("Ошибка выделения памяти для карт покрытия\n");
         return EXIT_FAILURE;
     }
     
@@ -55,10 +59,22 @@ int main(void) {
             &angle, &symb);
 
         rays[i] = init_ray(x, y, angle, power, symb);
+        if (rays[i] == NULL) {
+            printf("Ошибка выделения памяти для луча\n");
+            return EXIT_FAILURE;
+        }
         covers[i] = calloc(n * n, sizeof(float));
+        if (covers[i] == NULL) {
+            printf("Ошибка выделения памяти для карт покрытия\n");
+            return EXIT_FAILURE;
+        }
     }
     
     map = malloc(sizeof(char) * n * n);
+    if (map == NULL) {
+        printf("Ошибка выделения памяти для карты\n");
+        return EXIT_FAILURE;
+    }
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             fscanf(input, "%d", &value_buf);
@@ -97,12 +113,12 @@ void raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count
         for (int i = 0; i < rays_count; i++) {
             Ray *ray = rays[i];
             int result = trace_step(ray, map_with_rays, map, covers[i], n);
-            printf("Ray \'%c\' coordinates (%.2f, %.2f), power: %.12f\n",\
-                ray->symb, ray->x, ray->y, ray->power);
             if (result == EXIT_FAILURE || ray->power <= EXP) {
                 trace = false;
                 continue;
             }
+            printf("Ray \'%c\' coordinates (%.2f, %.2f), power: %.12f\n",\
+                ray->symb, ray->x, ray->y, ray->power);
         }
 
         print_matrix(map_with_rays, (size_t) (n), (size_t) (n), MATRIX_CHAR);
@@ -140,7 +156,7 @@ int trace_step(Ray *ray, char *map_with_rays, const char *map, float *cover, int
         return EXIT_FAILURE;
     }
 
-    if (check_and_proccess_collision(ray, cx, cy, map, n)) {
+    if (check_and_process_collision(ray, cx, cy, map, n)) {
         material = map[cx_new * n + cy_new];
         init_power_update(ray, material);
 
@@ -162,7 +178,7 @@ int trace_step(Ray *ray, char *map_with_rays, const char *map, float *cover, int
 /// @param map карта
 /// @param n размерность карты
 /// @return true - столкнулся, false - не столкнулся
-bool check_and_proccess_collision(Ray *ray, float x, float y, \
+bool check_and_process_collision(Ray *ray, float x, float y, \
         const char *map, int n) {
     int x_new = (int)ray->x;
     int y_new = (int)ray->y;
