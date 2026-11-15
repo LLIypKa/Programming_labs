@@ -7,7 +7,6 @@
 #include "work_with_2D_matrix/2D_matrix.h"
 
 //TODO придумать что-нибудь с материалами (возможно сделатькарту материалов)
-//TODO исправить накопление силы в стене (относится к фиксу для расчёта координат)
 
 #define STEP 0.5f
 #define AIR_WEAKING 0.99f
@@ -40,7 +39,16 @@ int main(void) {
     fscanf(input, "%d %d", &n, &rays_count);
     
     rays = malloc(sizeof(Ray*) * rays_count);
+    if (rays == NULL) {
+        printf("Ошибка чтения файла\n");
+        return EXIT_FAILURE;
+    }
+
     covers = malloc(sizeof(float*) * rays_count);
+    if (covers == NULL) {
+        printf("Ошибка чтения файла\n");
+        return EXIT_FAILURE;
+    }
     
     for (int i = 0; i < rays_count; i++) {
         fscanf(input, "%f %f %f %f %c", &power, &x, &y,\
@@ -50,7 +58,7 @@ int main(void) {
         covers[i] = calloc(n * n, sizeof(float));
     }
     
-    map = (char*)malloc(sizeof(char) * n * n);
+    map = malloc(sizeof(char) * n * n);
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             fscanf(input, "%d", &value_buf);
@@ -175,6 +183,10 @@ bool check_and_proccess_collision(Ray *ray, float x, float y, \
     return false;
 }
 
+/// @brief проверяет поступающий материал, инициирует обращение к ray-методам для 
+/// обновления мощности луча
+/// @param ray луч
+/// @param material полученный материал
 void init_power_update(Ray *ray, char material) {
     switch (material)
     {
@@ -190,6 +202,11 @@ void init_power_update(Ray *ray, char material) {
     }
 }
 
+/// @brief вызывает печать каты покрытия для каждого луча 
+/// @param covers массив карт покрытия
+/// @param n роазмерность карты покрытия
+/// @param rays массив лучей
+/// @param rays_count размерность массива лучей и карт покрытия
 void print_covers(float **covers, int n, Ray **rays, int rays_count) {
     for (int z = 0; z < rays_count; z++) {
         printf("Cover map for %c ray\n", rays[z]->symb);

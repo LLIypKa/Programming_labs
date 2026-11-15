@@ -1,12 +1,6 @@
 #include <stdio.h>
 #include "2D_matrix.h"
 
-#define FORMAT(x) _Generic((x), \
-    int: "%d",                  \
-    float: "%.2f",              \
-    double: "%.2f"              \
-)
-
 /// @brief печатает двумерную матрицу
 /// @param matrix матрица с неизвестным типом
 /// @param n количество строк в матрице
