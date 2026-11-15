@@ -7,6 +7,7 @@
 #include "work_with_2D_matrix/2D_matrix.h"
 
 //TODO придумать что-нибудь с материалами (возможно сделать карту материалов)
+//по-хорошему, если готовить код к проду, надо бы еще fscanf проверять
 
 #define STEP 0.5f
 #define AIR_WEAKING 0.99f
@@ -14,7 +15,7 @@
 #define GLASS_WEAKING 0.8f
 #define EXP 0.01f
 
-void raytrace(Ray**, const char*, float**, int, int); 
+int raytrace(Ray**, const char*, float**, int, int); 
 int trace_step(Ray*, char*, const char*, float*, int);
 void print_covers(float**, int, Ray**, int);
 bool out_of_map(Ray*, int);
@@ -88,7 +89,10 @@ int main(void) {
         }
     }
 
-    raytrace(rays, map, covers, n, rays_count);
+    if (raytrace(rays, map, covers, n, rays_count) != EXIT_SUCCESS) {
+         ret_code = EXIT_FAILURE;
+        goto CLEANUP;
+    }
     print_covers(covers, n, rays, rays_count);
 
     CLEANUP:
@@ -115,13 +119,13 @@ int main(void) {
 /// @param covers карта покрытия
 /// @param n размерность карты
 /// @param rays_count количество лучей
-void raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count) {
+int raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count) {
     bool trace = true;
     char *map_with_rays = malloc(sizeof(char) * n * n);
 
     if (map_with_rays == NULL) {
         printf("Ошибка обработки данных");
-        return;
+        return EXIT_FAILURE;
     }
 
     while (trace) {
@@ -143,6 +147,7 @@ void raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count
     } 
 
     free(map_with_rays);
+    return EXIT_SUCCESS;
 }
 
 /// @brief делает шаг трассировки для конкретного луча
