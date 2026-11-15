@@ -18,10 +18,10 @@ int print_matrix(const void* matrix, size_t n, size_t m, enum types type) {
                     printf(" %d ", ((int*)matrix)[k]); 
                     break;
                 case MATRIX_FLOAT:  
-                    printf(" %.12f ", ((float*)matrix)[k]); 
+                    printf(" %6.3f ", ((float*)matrix)[k]); 
                     break;
                 case MATRIX_DOUBLE: 
-                    printf(" %.12f ", ((double *)matrix)[k]); 
+                    printf(" %6.3f ", ((double *)matrix)[k]); 
                     break;
                 case MATRIX_CHAR:
                     printf(" %c ", ((char*)matrix)[k]);

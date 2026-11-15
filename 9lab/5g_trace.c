@@ -3,12 +3,15 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdbool.h>
+#include <time.h>
 #include "work_with_ray/ray.h"
 #include "work_with_2D_matrix/2D_matrix.h"
 
+//АЛАРМ - сделать замер времени, свёртку, общую карту покрытия
 //TODO придумать что-нибудь с материалами (возможно сделать карту материалов)
 //по-хорошему, если готовить код к проду, надо бы еще fscanf проверять
 
+#define SLEEP_TIME_MS 50000
 #define STEP 0.5f
 #define AIR_WEAKING 0.99f
 #define CONCRETE_WEAKING 0.5f
@@ -130,6 +133,8 @@ int raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count)
 
     while (trace) {
         memcpy(map_with_rays, map, n * n * sizeof(char));
+        printf("\033[2J\033[H"); 
+        fflush(stdout);
         for (int i = 0; i < rays_count; i++) {
             Ray *ray = rays[i];
             int result = trace_step(ray, map_with_rays, map, covers[i], n);
@@ -142,8 +147,7 @@ int raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count)
         }
 
         print_matrix(map_with_rays, (size_t) (n), (size_t) (n), MATRIX_CHAR);
-        usleep(20000);
-        fflush(stdout);
+        usleep(SLEEP_TIME_MS);
     } 
 
     free(map_with_rays);
@@ -204,7 +208,7 @@ bool check_and_process_collision(Ray *ray, float x, float y, \
     int x_new = (int)ray->x;
     int y_new = (int)ray->y;
 
-    if (map[((int)x_new) * n + ((int)y_new)] != '0') {    
+    if (map[((int)y_new) * n + ((int)x_new)] != '0') {    
         bool wall_vert = (x_new != (int)x) && (map[(int)y * n + x_new] != '0');  // стена по x
         bool wall_horiz = (y_new != (int)y) && (map[y_new * n + ((int)x)] != '0'); // стена по y
         if (x_new != (int)x && y_new != (int)y && !wall_vert && !wall_horiz) {
