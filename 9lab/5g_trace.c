@@ -124,7 +124,7 @@ int raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count)
     char *map_with_rays = malloc(sizeof(char) * n * n);
 
     if (map_with_rays == NULL) {
-        printf("Ошибка обработки данных");
+        printf("Ошибка обработки данных\n");
         return EXIT_FAILURE;
     }
 
@@ -207,6 +207,9 @@ bool check_and_process_collision(Ray *ray, float x, float y, \
     if (map[((int)x_new) * n + ((int)y_new)] != '0') {    
         bool wall_vert = (x_new != (int)x) && (map[x_new * n + (int)y] != '0');  // стена по x
         bool wall_horiz = (y_new != (int)y) && (map[((int)x) * n + y_new] != '0'); // стена по y
+        if (x_new != (int)x && y_new != (int)y && !wall_vert && !wall_horiz) {
+            wall_vert = wall_horiz = true;
+        }
 
         if (wall_vert) ray->dx = -ray->dx;
         if (wall_horiz) ray->dy = -ray->dy; 
