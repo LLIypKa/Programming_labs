@@ -29,28 +29,31 @@ int main(void) {
         return EXIT_FAILURE;
     }
 
-    int n, rays_count, value_buf;
+    int n = 0, rays_count = 0, value_buf, ret_code = EXIT_SUCCESS;
     float x, y, power, angle;
     char symb;
-    Ray **rays;
-    char *map;
-    float **covers;
+    Ray **rays = NULL;
+    char *map = NULL;
+    float **covers = NULL;
 
     fscanf(input, "%d %d", &n, &rays_count);
     if (rays_count <= 0 || n <= 0) {
         printf("Некорректные данные: размерность карты и количество лучей должны быть > 0\n");
+        ret_code = EXIT_FAILURE;
         goto CLEANUP;
     }
     
     rays = malloc(sizeof(Ray*) * rays_count);
     if (rays == NULL) {
         printf("Ошибка выделения памяти для лучей\n");
+        ret_code = EXIT_FAILURE;
         goto CLEANUP;
     }
 
     covers = malloc(sizeof(float*) * rays_count);
     if (covers == NULL) {
         printf("Ошибка выделения памяти для карт покрытия\n");
+        ret_code = EXIT_FAILURE;
         goto CLEANUP;
     }
     
@@ -61,11 +64,13 @@ int main(void) {
         rays[i] = init_ray(x, y, angle, power, symb);
         if (rays[i] == NULL) {
             printf("Ошибка выделения памяти для луча\n");
+            ret_code = EXIT_FAILURE;
             goto CLEANUP;
         }
         covers[i] = calloc(n * n, sizeof(float));
         if (covers[i] == NULL) {
             printf("Ошибка выделения памяти для карт покрытия\n");
+            ret_code = EXIT_FAILURE;
             goto CLEANUP;
         }
     }
@@ -73,6 +78,7 @@ int main(void) {
     map = malloc(sizeof(char) * n * n);
     if (map == NULL) {
         printf("Ошибка выделения памяти для карты\n");
+        ret_code = EXIT_FAILURE;
         goto CLEANUP;
     }
     for (int i = 0; i < n; i++) {
@@ -100,7 +106,7 @@ int main(void) {
         free(rays);
     }
     if (map) free(map);
-    return EXIT_SUCCESS;
+    return ret_code;
 }
 
 /// @brief просчитывает путь луча и карту покрытия
