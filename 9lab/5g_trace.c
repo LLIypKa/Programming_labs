@@ -6,13 +6,13 @@
 #include "work_with_ray/ray.h"
 #include "work_with_2D_matrix/2D_matrix.h"
 
-//TODO придумать что-нибудь с материалами (возможно сделатькарту материалов)
+//TODO придумать что-нибудь с материалами (возможно сделать карту материалов)
 
 #define STEP 0.5f
 #define AIR_WEAKING 0.99f
 #define CONCRETE_WEAKING 0.5f
 #define GLASS_WEAKING 0.8f
-#define EXP 0.01
+#define EXP 0.01f
 
 void raytrace(Ray**, const char*, float**, int, int); 
 int trace_step(Ray*, char*, const char*, float*, int);
@@ -39,19 +39,19 @@ int main(void) {
     fscanf(input, "%d %d", &n, &rays_count);
     if (rays_count <= 0 || n <= 0) {
         printf("Некорректные данные: размерность карты и количество лучей должны быть > 0\n");
-        return EXIT_FAILURE;
+        goto CLEANUP;
     }
     
     rays = malloc(sizeof(Ray*) * rays_count);
     if (rays == NULL) {
         printf("Ошибка выделения памяти для лучей\n");
-        return EXIT_FAILURE;
+        goto CLEANUP;
     }
 
     covers = malloc(sizeof(float*) * rays_count);
     if (covers == NULL) {
         printf("Ошибка выделения памяти для карт покрытия\n");
-        return EXIT_FAILURE;
+        goto CLEANUP;
     }
     
     for (int i = 0; i < rays_count; i++) {
@@ -61,19 +61,19 @@ int main(void) {
         rays[i] = init_ray(x, y, angle, power, symb);
         if (rays[i] == NULL) {
             printf("Ошибка выделения памяти для луча\n");
-            return EXIT_FAILURE;
+            goto CLEANUP;
         }
         covers[i] = calloc(n * n, sizeof(float));
         if (covers[i] == NULL) {
             printf("Ошибка выделения памяти для карт покрытия\n");
-            return EXIT_FAILURE;
+            goto CLEANUP;
         }
     }
     
     map = malloc(sizeof(char) * n * n);
     if (map == NULL) {
         printf("Ошибка выделения памяти для карты\n");
-        return EXIT_FAILURE;
+        goto CLEANUP;
     }
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
@@ -85,16 +85,21 @@ int main(void) {
     raytrace(rays, map, covers, n, rays_count);
     print_covers(covers, n, rays, rays_count);
 
+    CLEANUP:
     fclose(input);
-    for (int i = 0; i < rays_count; i++) {
-        free(covers[i]);
+    if (covers) {
+        for (int i = 0; i < rays_count; i++) {
+            if (covers[i]) free(covers[i]);
+        }
+        free(covers);
     }
-    free(map);
-    free(covers);
-    for (int i = 0; i < rays_count; i++){
-        free(rays[i]);
+    if (rays) {
+        for (int i = 0; i < rays_count; i++){
+            if (rays[i]) free(rays[i]);
+        }
+        free(rays);
     }
-    free(rays);
+    if (map) free(map);
     return EXIT_SUCCESS;
 }
 
