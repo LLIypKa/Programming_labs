@@ -135,7 +135,7 @@ void raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count
 /// @param map карта города без изменений
 /// @param cover карта покрытия луча
 /// @param n размерность карт
-/// @return возвращает код возврата
+/// @return возвращает код возврата EXIT_SUCCESS или EXIT_FAILURE
 int trace_step(Ray *ray, char *map_with_rays, const char *map, float *cover, int n) {
     float cx, cy;
     int cx_new, cy_new;
