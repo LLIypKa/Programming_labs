@@ -90,7 +90,7 @@ int main(void) {
     }
 
     if (raytrace(rays, map, covers, n, rays_count) != EXIT_SUCCESS) {
-         ret_code = EXIT_FAILURE;
+        ret_code = EXIT_FAILURE;
         goto CLEANUP;
     }
     print_covers(covers, n, rays, rays_count);
@@ -178,16 +178,16 @@ int trace_step(Ray *ray, char *map_with_rays, const char *map, float *cover, int
     }
 
     if (check_and_process_collision(ray, cx, cy, map, n)) {
-        material = map[cx_new * n + cy_new];
+        material = map[cy_new * n + cx_new];
         init_power_update(ray, material);
 
         return EXIT_SUCCESS;
     }
 
-    material = map[cx_new * n + cy_new];
+    material = map[cy_new * n + cx_new];
     init_power_update(ray, material);
-    cover[cx_new * n + cy_new] += ray->power;
-    map_with_rays[cx_new * n + cy_new] = ray->symb;
+    cover[cy_new * n + cx_new] += ray->power;
+    map_with_rays[cy_new * n + cx_new] = ray->symb;
 
     return EXIT_SUCCESS;
 }
@@ -205,8 +205,8 @@ bool check_and_process_collision(Ray *ray, float x, float y, \
     int y_new = (int)ray->y;
 
     if (map[((int)x_new) * n + ((int)y_new)] != '0') {    
-        bool wall_vert = (x_new != (int)x) && (map[x_new * n + (int)y] != '0');  // стена по x
-        bool wall_horiz = (y_new != (int)y) && (map[((int)x) * n + y_new] != '0'); // стена по y
+        bool wall_vert = (x_new != (int)x) && (map[(int)y * n + x_new] != '0');  // стена по x
+        bool wall_horiz = (y_new != (int)y) && (map[y_new * n + ((int)x)] != '0'); // стена по y
         if (x_new != (int)x && y_new != (int)y && !wall_vert && !wall_horiz) {
             wall_vert = wall_horiz = true;
         }
