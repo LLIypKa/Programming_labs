@@ -43,14 +43,14 @@ int main(void) {
         goto CLEANUP;
     }
     
-    rays = malloc(sizeof(Ray*) * rays_count);
+    rays = calloc(rays_count, sizeof(Ray*));
     if (rays == NULL) {
         printf("Ошибка выделения памяти для лучей\n");
         ret_code = EXIT_FAILURE;
         goto CLEANUP;
     }
 
-    covers = malloc(sizeof(float*) * rays_count);
+    covers = calloc(rays_count, sizeof(float*));
     if (covers == NULL) {
         printf("Ошибка выделения памяти для карт покрытия\n");
         ret_code = EXIT_FAILURE;
@@ -118,6 +118,11 @@ int main(void) {
 void raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count) {
     bool trace = true;
     char *map_with_rays = malloc(sizeof(char) * n * n);
+
+    if (map_with_rays == NULL) {
+        printf("Ошибка обработки данных");
+        return;
+    }
 
     while (trace) {
         memcpy(map_with_rays, map, n * n * sizeof(char));
