@@ -19,13 +19,14 @@
 #define GLASS_WEAKING 0.8f
 #define EXP 0.01f
 
-static int raytrace(Ray**, const char*, float**, int, int, double*); 
+static int raytrace(Ray**, const char*, float**, float*, int, int, double*); 
 static int trace_step(Ray*, char*, const char*, float*, int);
-static void print_covers(float**, int, Ray**, int);
+static void print_ray_covers(float**, int, Ray**, int);
 static bool out_of_map(Ray*, int);
 static bool check_and_process_collision(Ray*, float, float, const char*, int);
 static void init_power_update(Ray*, char);
 static double now_s(void);
+static void calculate_full_cover(float**, int, float*, int);
 
 int main(void) {
     FILE* input = fopen("map.txt", "r");
@@ -41,7 +42,8 @@ int main(void) {
     char symb;
     Ray **rays = NULL;
     char *map = NULL;
-    float **covers = NULL;
+    float **rays_covers = NULL;
+    float *full_cover = NULL;
 
     fscanf(input, "%d %d", &n, &rays_count);
     if (rays_count <= 0 || n <= 0) {
@@ -57,8 +59,9 @@ int main(void) {
         goto CLEANUP;
     }
 
-    covers = calloc(rays_count, sizeof(float*));
-    if (covers == NULL) {
+    rays_covers = calloc(rays_count, sizeof(float*));
+    full_cover = calloc(n * n, sizeof(float));
+    if (rays_covers == NULL || full_cover == NULL) {
         printf("Ошибка выделения памяти для карт покрытия\n");
         ret_code = EXIT_FAILURE;
         goto CLEANUP;
@@ -74,8 +77,8 @@ int main(void) {
             ret_code = EXIT_FAILURE;
             goto CLEANUP;
         }
-        covers[i] = calloc(n * n, sizeof(float));
-        if (covers[i] == NULL) {
+        rays_covers[i] = calloc(n * n, sizeof(float));
+        if (rays_covers[i] == NULL) {
             printf("Ошибка выделения памяти для карт покрытия\n");
             ret_code = EXIT_FAILURE;
             goto CLEANUP;
@@ -95,21 +98,24 @@ int main(void) {
         }
     }
 
-    if (raytrace(rays, map, covers, n, rays_count, &algorithm_time) != EXIT_SUCCESS) {
+    if (raytrace(rays, map, rays_covers, full_cover, n, rays_count, &algorithm_time) != EXIT_SUCCESS) {
         ret_code = EXIT_FAILURE;
         goto CLEANUP;
     }
     printf("Время, потраченное на расчёты пути луча и карт покрытия: %6.2f мс\n", algorithm_time * 1000.0);
-    print_covers(covers, n, rays, rays_count);
+    print_ray_covers(rays_covers, n, rays, rays_count);
+    printf("Полная карта покрытия\n");
+    print_matrix(full_cover, (size_t) n, (size_t) n, MATRIX_FLOAT);
 
     CLEANUP:
     fclose(input);
-    if (covers) {
+    if (rays_covers) {
         for (int i = 0; i < rays_count; i++) {
-            if (covers[i]) free(covers[i]);
+            if (rays_covers[i]) free(rays_covers[i]);
         }
-        free(covers);
+        free(rays_covers);
     }
+    if (full_cover) free(full_cover);
     if (rays) {
         for (int i = 0; i < rays_count; i++){
             if (rays[i]) free(rays[i]);
@@ -124,10 +130,12 @@ int main(void) {
 /// @param ray луч
 /// @param map карта города
 /// @param covers карта покрытия
+/// @param full_cover карта покрытия
 /// @param n размерность карты
 /// @param rays_count количество лучей
 /// @param time время, затраченное на вычисления
-int raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count, double *time) {
+int raytrace(Ray **rays, const char *map, float **covers, \
+        float *full_cover, int n, int rays_count, double *time) {
     bool trace = true;
     char *map_with_rays = malloc(sizeof(char) * n * n);
 
@@ -161,6 +169,11 @@ int raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count,
         print_matrix(map_with_rays, (size_t) (n), (size_t) (n), MATRIX_CHAR);
         nanosleep(&ts, NULL);
     } 
+
+    double t0 = now_s();
+    calculate_full_cover(covers, rays_count, full_cover, n);
+    double t1 = now_s();
+    *time += t1 - t0;
 
     free(map_with_rays);
     return EXIT_SUCCESS;
@@ -263,7 +276,7 @@ void init_power_update(Ray *ray, char material) {
 /// @param n роазмерность карты покрытия
 /// @param rays массив лучей
 /// @param rays_count размерность массива лучей и карт покрытия
-void print_covers(float **covers, int n, Ray **rays, int rays_count) {
+void print_ray_covers(float **covers, int n, Ray **rays, int rays_count) {
     for (int z = 0; z < rays_count; z++) {
         printf("Cover map for %c ray\n", rays[z]->symb);
         print_matrix(covers[z], (size_t) n, (size_t) n, MATRIX_FLOAT);
@@ -283,3 +296,18 @@ static double now_s(void) {
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return (double)ts.tv_sec + (double)ts.tv_nsec / 1e9;
 } 
+
+/// @brief расчёт общей карты покрытия
+/// @param rays_covers карта покрытия каждого луча
+/// @param rays_count количество лучей
+/// @param full_cover общая карта покрытия
+/// @param n размерность карт
+static void calculate_full_cover(float **rays_covers, int rays_count, float *full_cover, int n) {
+    for (int z = 0; z < rays_count; z++) {
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                full_cover[j * n + i] += rays_covers[z][j * n + i];
+            }
+        }
+    }
+}
