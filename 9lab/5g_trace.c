@@ -1,29 +1,31 @@
+#define _POSIX_C_SOURCE 199309L
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdbool.h>
-#include <time.h>
 #include "work_with_ray/ray.h"
 #include "work_with_2D_matrix/2D_matrix.h"
+#include <time.h>
 
-//АЛАРМ - сделать замер времени, свёртку, общую карту покрытия
+//АЛАРМ - сделать свёртку, общую карту покрытия
 //TODO придумать что-нибудь с материалами (возможно сделать карту материалов)
 //по-хорошему, если готовить код к проду, надо бы еще fscanf проверять
 
-#define SLEEP_TIME_MS 50000
+#define SLEEP_TIME_MS 75
 #define STEP 0.5f
 #define AIR_WEAKING 0.99f
 #define CONCRETE_WEAKING 0.5f
 #define GLASS_WEAKING 0.8f
 #define EXP 0.01f
 
-int raytrace(Ray**, const char*, float**, int, int); 
-int trace_step(Ray*, char*, const char*, float*, int);
-void print_covers(float**, int, Ray**, int);
-bool out_of_map(Ray*, int);
-bool check_and_process_collision(Ray*, float, float, const char*, int);
-void init_power_update(Ray*, char);
+static int raytrace(Ray**, const char*, float**, int, int, double*); 
+static int trace_step(Ray*, char*, const char*, float*, int);
+static void print_covers(float**, int, Ray**, int);
+static bool out_of_map(Ray*, int);
+static bool check_and_process_collision(Ray*, float, float, const char*, int);
+static void init_power_update(Ray*, char);
+static double now_s(void);
 
 int main(void) {
     FILE* input = fopen("map.txt", "r");
@@ -35,6 +37,7 @@ int main(void) {
 
     int n = 0, rays_count = 0, value_buf, ret_code = EXIT_SUCCESS;
     float x, y, power, angle;
+    double algorithm_time = 0.0;
     char symb;
     Ray **rays = NULL;
     char *map = NULL;
@@ -92,10 +95,11 @@ int main(void) {
         }
     }
 
-    if (raytrace(rays, map, covers, n, rays_count) != EXIT_SUCCESS) {
+    if (raytrace(rays, map, covers, n, rays_count, &algorithm_time) != EXIT_SUCCESS) {
         ret_code = EXIT_FAILURE;
         goto CLEANUP;
     }
+    printf("Время, потраченное на расчёты пути луча и карт покрытия: %6.2f мс\n", algorithm_time * 1000.0);
     print_covers(covers, n, rays, rays_count);
 
     CLEANUP:
@@ -122,7 +126,8 @@ int main(void) {
 /// @param covers карта покрытия
 /// @param n размерность карты
 /// @param rays_count количество лучей
-int raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count) {
+/// @param time время, затраченное на вычисления
+int raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count, double *time) {
     bool trace = true;
     char *map_with_rays = malloc(sizeof(char) * n * n);
 
@@ -137,7 +142,10 @@ int raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count)
         fflush(stdout);
         for (int i = 0; i < rays_count; i++) {
             Ray *ray = rays[i];
+            double t0 = now_s();
             int result = trace_step(ray, map_with_rays, map, covers[i], n);
+            double t1 = now_s();
+            *time += t1 - t0;
             if (result == EXIT_FAILURE || ray->power <= EXP) {
                 trace = false;
                 continue;
@@ -146,8 +154,12 @@ int raytrace(Ray **rays, const char *map, float **covers, int n, int rays_count)
                 ray->symb, ray->x, ray->y, ray->power);
         }
 
+        struct timespec ts = {
+            .tv_sec  = SLEEP_TIME_MS / 1000,
+            .tv_nsec = (SLEEP_TIME_MS % 1000) * 1000000L
+        };
         print_matrix(map_with_rays, (size_t) (n), (size_t) (n), MATRIX_CHAR);
-        usleep(SLEEP_TIME_MS);
+        nanosleep(&ts, NULL);
     } 
 
     free(map_with_rays);
@@ -265,3 +277,9 @@ void print_covers(float **covers, int n, Ray **rays, int rays_count) {
 bool out_of_map(Ray *ray, int n) {
     return ray->x < 0.0f || ray->x >= n || ray->y < 0.0f || ray->y >= n;
 }
+
+static double now_s(void) {
+    struct timespec ts;     
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (double)ts.tv_sec + (double)ts.tv_nsec / 1e9;
+} 
