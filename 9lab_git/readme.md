@@ -8,3 +8,7 @@
 ![alt text](images/git_status_4.png)
 6) git status - в выводе теперь все вновь добавленные (командой git add .) на момент выполнения файлы
 ![alt text](images/git_status_6.png)
+7) git commit - при помощи флага -m добавлено сообщение для коммита
+![alt text](images/git_commit.png)
+8) git status - снова нет индексированных файлов
+![alt text](images/git_status_8.png)
