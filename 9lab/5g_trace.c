@@ -26,7 +26,8 @@ static bool out_of_map(Ray*, int);
 static bool check_and_process_collision(Ray*, float, float, const char*, int);
 static void init_power_update(Ray*, char);
 static double now_s(void);
-static void calculate_full_cover(float**, int, float*, int);
+static void calculate_and_proccess_full_cover(float**, int, float*, int);
+static float find_max_cover(float*, int);
 
 int main(void) {
     FILE* input = fopen("map.txt", "r");
@@ -171,7 +172,7 @@ int raytrace(Ray **rays, const char *map, float **covers, \
     } 
 
     double t0 = now_s();
-    calculate_full_cover(covers, rays_count, full_cover, n);
+    calculate_and_proccess_full_cover(covers, rays_count, full_cover, n);
     double t1 = now_s();
     *time += t1 - t0;
 
@@ -302,12 +303,37 @@ static double now_s(void) {
 /// @param rays_count количество лучей
 /// @param full_cover общая карта покрытия
 /// @param n размерность карт
-static void calculate_full_cover(float **rays_covers, int rays_count, float *full_cover, int n) {
+static void calculate_and_proccess_full_cover(float **rays_covers, int rays_count, float *full_cover, int n) {
     for (int z = 0; z < rays_count; z++) {
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
-                full_cover[j * n + i] += rays_covers[z][j * n + i];
+                full_cover[i * n + j] += rays_covers[z][i * n + j];
             }
         }
     }
+
+    float max = find_max_cover(full_cover, n);
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            full_cover[i * n + j] = full_cover[i * n + j] / max;
+        }
+    }
+}
+
+/// @brief ищет максимальный элемент в матрице
+/// @param full_cover матрица
+/// @param n размерность матрицы
+/// @return float
+static float find_max_cover(float *full_cover, int n) {
+    float max = full_cover[0];
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            if (max <= full_cover[j * n + i]) {
+                max = full_cover[j * n + i];
+            }
+        }
+    }
+
+    return max;
 }
