@@ -106,4 +106,7 @@
 14) теперь в файле лежат изменения из feature/uppercase
 ![alt text](images/4/branch14.png)
 15) ![alt text](images/4/branch15.png)
-16) 
+16) ![alt text](images/4/branch16.png)
+17) виден граф от создания ветки mybranch до ее мерджа в main
+![alt text](images/4/branch17.png)
+1)  ![alt text](images/4/branch18.png)
