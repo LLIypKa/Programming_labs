@@ -109,4 +109,5 @@
 16) ![alt text](images/4/branch16.png)
 17) виден граф от создания ветки mybranch до ее мерджа в main
 ![alt text](images/4/branch17.png)
-1)  ![alt text](images/4/branch18.png)
+18)  ![alt text](images/4/branch18.png)
+19)  ![alt text](images/4/branch19.png)
