@@ -18,8 +18,8 @@ void bubble_cort(int *array, int n) {
 }
 
 int main(void) {
-    int a[] = { 4, 2, 0};
-    bubble_cort(a, 3);
+    int a[] = { 4, 0};
+    bubble_cort(a, 2);
 
     return EXIT_SUCCESS;
 }
