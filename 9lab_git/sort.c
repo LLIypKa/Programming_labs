@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <stdlib.h>
+
 /// @brief реализация пузырьковой сортировки для массива, не самая быстрая сортировка для больших m
 /// @param array указатель на массив
 /// @param n размерность массива
@@ -12,4 +15,11 @@ void bubble_cort(int *array, int n) {
             }            
         }
     }
+}
+
+int main(void) {
+    int a[] = { 4, 2, 0};
+    bubble_cort(a, 3);
+
+    return EXIT_SUCCESS;
 }
