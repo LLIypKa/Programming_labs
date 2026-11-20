@@ -74,3 +74,15 @@
 ![alt text](images/4/12.png)
 13, 14) теперь видно, что просто существуют изменения в файле sort.c
 ![alt text](images/4/13_14.png)
+15) ![alt text](images/4/15.png)
+16) теперь head на последнем коммите
+![alt text](images/4/16.png)
+17) ![alt text](images/4/17.png)
+18) ![alt text](images/4/18.png)
+19) git status показывает, какие изменения могут быть проиндексированы
+![alt text](images/4/19.png)
+20, 21) теперь в sort.c последние закоммиченные изменения
+![alt text](images/4/20_21.png)
+22) теперь sort.c пропал из git status, т.к. в нем нет никаких изменений
+![alt text](images/4/22.png)
+23) ![alt text](images/4/23.png)
