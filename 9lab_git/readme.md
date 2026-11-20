@@ -86,3 +86,24 @@
 22) теперь sort.c пропал из git status, т.к. в нем нет никаких изменений
 ![alt text](images/4/22.png)
 23) ![alt text](images/4/23.png)
+## ветки
+1) ![alt text](images/4/branch1.png)
+2) ![alt text](images/4/branch2.png)
+3, 4) ![alt text](images/4/branch_3_4.png) 
+5) указана новая ветка и непроиндексированные изменения
+![alt text](images/4/branch5.png)
+6) ![alt text](images/4/branch6.png)
+7) ![alt text](images/4/branch7.png)
+8) текущей указана feature/uppercase
+![alt text](images/4/branch8.png)
+9) видно структуру веток, также указатель HEAD указывает на текущую ветку, также видно, что ветка создана из mybranch
+![alt text](images/4/branch9.png)
+10) ![alt text](images/4/branch10.png)
+11) ![alt text](images/4/branch11.png)
+12) видно, что в файле лежит разный текст
+![alt text](images/4/branch12.png)
+13) ![alt text](images/4/branch13.png)
+14) теперь в файле лежат изменения из feature/uppercase
+![alt text](images/4/branch14.png)
+15) ![alt text](images/4/branch15.png)
+16) 
