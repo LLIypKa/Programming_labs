@@ -127,3 +127,22 @@
 10) после индексирования исправления конфликта слияния виден коммит с фиксом и слияние веток
 ![alt text](images/5/10.png)
 11) ![alt text](images/5/11.png)
+
+## ветки
+1) ![alt text](images/5/branch1.png)
+2) ![alt text](images/5/branch2.png)
+3) ![alt text](images/5/branch3.png)
+4) ![alt text](images/5/branch4.png)
+5) ![alt text](images/5/branch5.png)
+6) ![alt text](images/5/branch6_1.png)
+![alt text](images/5/branch6_2.png)
+7) ![alt text](images/5/branch7.png)
+8) нет ветвлений (новой ветки)
+![alt text](images/5/branch8.png)
+9) что мы в main
+![alt text](images/5/branch9.png)
+10) конфликт
+![alt text](images/5/branch10.png)
+11) оставим изменения из ветки Mergesort-Impl, т.к. изменения практически идентичны
+![alt text](images/5/branch11.png)
+![alt text](images/5/branch11_1.png)
