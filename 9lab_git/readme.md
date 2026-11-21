@@ -111,3 +111,19 @@
 ![alt text](images/4/branch17.png)
 18)  ![alt text](images/4/branch18.png)
 19)  ![alt text](images/4/branch19.png)
+
+# на 5
+1) ![alt text](images/5/1.png)
+2, 3) ![alt text](images/5/2_3.png)
+4, 5) ![alt text](images/5/4_5.png)
+6) видно, что параллельно обновляется ветка branch1
+![alt text](image.png)
+7) есть конфликт, т.к. создан и проиндексирован файл с одинаковым названием, но разным содержанием
+![alt text](images/5/7.png)
+8) показывает текущий статус репы, учитывая конфликты мерджа, предлагает способы решения
+![alt text](images/5/8.png)
+9) ![alt text](images/5/9_1.png)
+![alt text](images/5/9_2.png)
+10) после индексирования исправления конфликта слияния виден коммит с фиксом и слияние веток
+![alt text](images/5/10.png)
+11) ![alt text](images/5/11.png)
