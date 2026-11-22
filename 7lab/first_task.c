@@ -17,10 +17,10 @@ int main(void) {
     printf("Введите размерность матрицы NxN: ");
     scanf("%d", &matrix_size);
     //инициализация памяти для матрицы
-    double **matrix = (double**)malloc(sizeof(double*) * matrix_size);
-    double *free_terms_vector = (double*)malloc(sizeof(double) * matrix_size);
+    double **matrix = malloc(sizeof(double*) * matrix_size);
+    double *free_terms_vector = malloc(sizeof(double) * matrix_size);
     for (int i = 0; i < matrix_size; i++) {
-        matrix[i] = (double*)malloc(sizeof(double) * matrix_size);
+        matrix[i] = malloc(sizeof(double) * matrix_size);
     }
     init_matrix(matrix, free_terms_vector, &matrix_size);
 
@@ -34,7 +34,7 @@ int main(void) {
         printf("det A = %.2lf\n", determinant);
     }
 
-    double *unknowns_vector = (double*)malloc(sizeof(double) * matrix_size);
+    double *unknowns_vector = malloc(sizeof(double) * matrix_size);
     find_unknowns(matrix, free_terms_vector, unknowns_vector, &matrix_size, &determinant);
 
     for(int i = 0; i < matrix_size; i++) {
@@ -68,7 +68,7 @@ void init_matrix(double **matrix, double *free_terms, int* matrix_size) {
 
 double find_determinant(double **matrix, int* matrix_size) {
     double determinant = 0;
-    int *used_columns = (int*)calloc(*matrix_size, sizeof(int));
+    int *used_columns = calloc(*matrix_size, sizeof(int));
 
     for (int i = 0; i < *matrix_size; i++) {
         used_columns[i] = 1;
@@ -112,7 +112,7 @@ int get_multiplier(int row, int column) {
 }
 
 void find_unknowns(double **matrix, double *free_terms, double *unknowns, int *matrix_size, double *determinant) {
-    double *column_backup = (double*)malloc(sizeof(double) * *matrix_size);
+    double *column_backup = malloc(sizeof(double) * *matrix_size);
     for(int i = 0; i < *matrix_size; i++) {
         for (int j = 0; j < *matrix_size; j++) {
             column_backup[j] = matrix[j][i];
